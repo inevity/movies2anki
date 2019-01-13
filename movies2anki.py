@@ -11,8 +11,8 @@ import sys
 import time
 
 from collections import deque
-from ConfigParser import SafeConfigParser
-from PyQt4 import QtCore, QtGui
+from configparser import ConfigParser
+from PyQt5 import QtCore, QtGui, QtWidgets
 from subprocess import call
 from subprocess import check_output
 from subprocess import Popen
@@ -148,11 +148,11 @@ def read_subtitles(content, is_ignore_SDH):
                     if is_not_sdh_subtitle(sub_content):
                         en_subs.append((sub_start, sub_end, sub_content))
                     else:
-                        print "Ignore subtitle: %s" % repr(sub_content)
+                        print("Ignore subtitle: %s" % repr(sub_content))
             else:
-                print "Empty subtitle: %s" % repr(sub)
+                print("Empty subtitle: %s" % repr(sub))
         else:
-            print "Ignore subtitle: %s" % repr(sub)
+            print("Ignore subtitle: %s" % repr(sub))
    
     return en_subs
 
@@ -238,13 +238,13 @@ def convert_into_sentences(en_subs, phrases_duration_limit):
             if ((sub_start - prev_sub_end) <= 2 and (sub_end - prev_sub_start) < phrases_duration_limit and 
                 sub_content[0] != '-' and
                 sub_content[0] != '"' and
-                sub_content[0] != u'♪' and
+                sub_content[0] != '♪' and
                 (prev_sub_content[-1] != '.' or (sub_content[0:3] == '...' or (prev_sub_content[-3:] == '...' and sub_content[0].islower()))) and 
                 prev_sub_content[-1] != '?' and
                 prev_sub_content[-1] != '!' and
                 prev_sub_content[-1] != ']' and
                 prev_sub_content[-1] != ')' and
-                prev_sub_content[-1] != u'♪' and
+                prev_sub_content[-1] != '♪' and
                 prev_sub_content[-1] != '"' and
                 (sub_content[0].islower() or sub_content[0].isdigit())):
 
@@ -373,7 +373,7 @@ def guess_srt_file(video_file, mask_list, default_filename):
 
         glob_result = find_glob_files(glob_pattern)
         if len(glob_result) >= 1:
-            print ("Found subtitle: " + glob_result[0]).encode('utf-8')
+            print(("Found subtitle: " + glob_result[0]).encode('utf-8'))
             return glob_result[0]
     else:
         return default_filename
@@ -405,14 +405,14 @@ def create_collection_dir(directory):
 def create_or_clean_collection_dir(directory):
     try:
         if os.path.exists(directory):
-            print "Remove dir " + directory.encode('utf-8')
+            print("Remove dir " + directory)
             shutil.rmtree(directory)
             time.sleep(0.5)
     
-        print "Create dir " + directory.encode('utf-8')
+        print("Create dir " + directory)
         os.makedirs(directory)
     except OSError as ex:
-        print ex
+        print(ex)
         return False
 
     return True
@@ -475,56 +475,56 @@ class Model(object):
         if not os.path.isfile(self.config_file_name):
             return
 
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(self.config_file_name)
 
-        self.input_directory = config.get('main', 'input_directory').decode('utf-8')
-        self.output_directory = config.get('main', 'output_directory').decode('utf-8')
-        self.video_width = config.getint('main', 'video_width')
-        self.video_height = config.getint('main', 'video_height')
-        self.shift_start = config.getfloat('main', 'pad_start')
-        self.shift_end = config.getfloat('main', 'pad_end')
-        self.time_delta = config.getfloat('main', 'gap_between_phrases')
-        self.is_split_long_phrases = config.getboolean('main', 'is_split_long_phrases')
-        self.phrases_duration_limit = config.getint('main', 'phrases_duration_limit')
-        self.mode = config.get('main', 'mode')
-        self.is_write_output_subtitles = config.getboolean('main', 'is_write_output_subtitles')
-        self.is_write_output_subtitles_for_clips = config.getboolean('main', 'is_write_output_subtitles_for_clips')
-        self.is_create_clips_with_softsub = config.getboolean('main', 'is_create_clips_with_softsub')
-        self.is_create_clips_with_hardsub = config.getboolean('main', 'is_create_clips_with_hardsub')
-        self.hardsub_style = config.get('main', 'hardsub_style')
-        self.is_ignore_sdh_subtitle = config.getboolean('main', 'is_ignore_sdh_subtitle')
-        self.is_add_dir_to_media_path = config.getboolean('main', 'is_add_dir_to_media_path')
-        self.is_separate_fragments_without_subtitles = config.getboolean('main', 'is_separate_fragments_without_subtitles')
-        
-        value = [e.strip() for e in config.get('main', 'recent_deck_names').decode('utf-8').split(',')]
+        mcfg = config['main']
+        #utf-8 python3
+        self.input_directory = mcfg['input_directory']
+        self.output_directory = mcfg['output_directory']
+        self.video_width = int(mcfg['video_width'])
+        self.video_height = int(mcfg['video_height'])
+        self.shift_start = float(mcfg['pad_start'])
+        self.shift_end =  float(mcfg['pad_end'])
+        self.time_delta = float(mcfg['gap_between_phrases'])
+        self.is_split_long_phrases = mcfg.getboolean('is_split_long_phrases')
+        self.phrases_duration_limit = int(mcfg['phrases_duration_limit'])
+        self.mode =  mcfg['mode']
+        self.is_write_output_subtitles = mcfg.getboolean('is_write_output_subtitles')
+        self.is_write_output_subtitles_for_clips = mcfg.getboolean('is_write_output_subtitles_for_clips')
+        self.is_create_clips_with_softsub = mcfg.getboolean('is_create_clips_with_softsub')
+        self.is_create_clips_with_hardsub = mcfg.getboolean('is_create_clips_with_hardsub')
+        self.hardsub_style = mcfg['hardsub_style']
+        self.is_ignore_sdh_subtitle = mcfg.getboolean('is_ignore_sdh_subtitle')
+        self.is_add_dir_to_media_path = mcfg.getboolean('is_add_dir_to_media_path')
+        self.is_separate_fragments_without_subtitles = mcfg.getboolean('is_separate_fragments_without_subtitles')
+
+        value = [e.strip() for e in mcfg['recent_deck_names'].split(',')]
         if len(value) != 0:
             self.recent_deck_names.extendleft(value)
 
     def save_settings(self):
-        config = SafeConfigParser()
-        config.add_section('main')
-        config.set('main', 'input_directory', self.input_directory.encode('utf-8'))
-        config.set('main', 'output_directory', self.output_directory.encode('utf-8'))
-        config.set('main', 'video_width', str(self.video_width))
-        config.set('main', 'video_height', str(self.video_height))
-        config.set('main', 'pad_start', str(self.shift_start))
-        config.set('main', 'pad_end', str(self.shift_end))
-        config.set('main', 'gap_between_phrases', str(self.time_delta))
-        config.set('main', 'is_split_long_phrases', str(self.is_split_long_phrases))
-        config.set('main', 'phrases_duration_limit', str(self.phrases_duration_limit))
-        config.set('main', 'mode', self.mode)
-        config.set('main', 'is_write_output_subtitles', str(self.is_write_output_subtitles))
-        config.set('main', 'is_write_output_subtitles_for_clips', str(self.is_write_output_subtitles_for_clips))
-        config.set('main', 'is_create_clips_with_softsub', str(self.is_create_clips_with_softsub))
-        config.set('main', 'is_create_clips_with_hardsub', str(self.is_create_clips_with_hardsub))
-        config.set('main', 'hardsub_style', self.hardsub_style.encode('utf-8'))
-        config.set('main', 'is_ignore_sdh_subtitle', str(self.is_ignore_sdh_subtitle))
-        config.set('main', 'is_add_dir_to_media_path', str(self.is_add_dir_to_media_path))
-        config.set('main', 'is_separate_fragments_without_subtitles', str(self.is_separate_fragments_without_subtitles))
-        
-        config.set('main', 'recent_deck_names', ",".join(reversed(self.recent_deck_names)).encode('utf-8'))
-  
+        config = ConfigParser(allow_no_value=True)
+        config['main'] = { 'input_directory': self.input_directory,
+                           'output_directory': self.output_directory,
+                           'video_width': str(self.video_width),
+                           'video_height': str(self.video_height),
+                           'pad_start': str(self.shift_start),
+                           'pad_end': str(self.shift_end),
+                           'gap_between_phrases': str(self.time_delta),
+                           'is_split_long_phrases': str(self.is_split_long_phrases),
+                           'phrases_duration_limit': str(self.phrases_duration_limit),
+                           'mode': self.mode,
+                           'is_write_output_subtitles': str(self.is_write_output_subtitles),
+                           'is_write_output_subtitles_for_clips': str(self.is_write_output_subtitles_for_clips),
+                           'is_create_clips_with_softsub': str(self.is_create_clips_with_softsub),
+                           'is_create_clips_with_hardsub': str(self.is_create_clips_with_hardsub),
+                           'hardsub_style': self.hardsub_style,
+                           'is_ignore_sdh_subtitle': str(self.is_ignore_sdh_subtitle),
+                           'is_add_dir_to_media_path': str(self.is_add_dir_to_media_path),
+                           'is_separate_fragments_without_subtitles': str(self.is_separate_fragments_without_subtitles),
+                           'recent_deck_names': ",".join(reversed(self.recent_deck_names)) }
+                           
         with open(self.config_file_name, 'w') as f:
             config.write(f)
 
@@ -545,15 +545,13 @@ class Model(object):
         if len(filename) == 0:
             return []
 
-        file_content = open(filename, 'rU').read()
+        file_content = open(filename, 'r').read()
         if file_content[:3]=='\xef\xbb\xbf': # with bom
             file_content = file_content[3:]
 
         ## Оставляем только одну пустую строку между субтитрами
         file_content = fix_empty_lines(file_content)
 
-        ## Конвертируем субтитры в Unicode
-        file_content = self.convert_to_unicode(file_content)
 
         ## Читаем субтитры
         return read_subtitles(file_content, is_ignore_SDH)
@@ -622,53 +620,53 @@ class Model(object):
         return ffmpeg_split_timestamps
 
     def create_subtitles(self):
-        print "--------------------------"
-        print "Video file: %s" % self.video_file.encode('utf-8')
-        print "Audio id: %s" % self.audio_id
-        print "English subtitles: %s" % self.en_srt.encode('utf-8')
-        print "Russian subtitles: %s" % self.ru_srt.encode('utf-8')
-        print "English subtitles output: %s" % self.out_en_srt.encode('utf-8')
-        print "Russian subtitles output: %s" % self.out_ru_srt.encode('utf-8')
-        print "Write output subtitles: %s" % self.is_write_output_subtitles
-        print "Write output subtitles for clips: %s" % self.is_write_output_subtitles_for_clips
-        print "Create clips with softsub: %s" % self.is_create_clips_with_softsub
-        print "Create clips with hardsub: %s" % self.is_create_clips_with_hardsub
-        print "Style for hardcoded subtitles: %s" % self.hardsub_style
-        print "Separate fragments without subtitles in Movie mode: %s" % self.is_separate_fragments_without_subtitles
-        print "Ignore SDH subtitles: %s" % self.is_ignore_sdh_subtitle
-        print "Output Directory: %s" % self.output_directory.encode('utf-8')
-        print "Video width: %s" % self.video_width
-        print "Video height: %s" % self.video_height
-        print "Pad start: %s" % self.shift_start
-        print "Pad end: %s" % self.shift_end
-        print "Gap between phrases: %s" % self.time_delta
-        print "Split Long Phrases: %s" % self.is_split_long_phrases
-        print "Max length phrases: %s" % self.phrases_duration_limit
-        print "Mode: %s" % self.mode
-        print "Deck name: %s" % self.deck_name.encode('utf-8')
-        print "--------------------------"
+        print("--------------------------")
+        print("Video file: %s" % self.video_file.encode('utf-8'))
+        print("Audio id: %s" % self.audio_id)
+        print("English subtitles: %s" % self.en_srt.encode('utf-8'))
+        print("Russian subtitles: %s" % self.ru_srt.encode('utf-8'))
+        print("English subtitles output: %s" % self.out_en_srt.encode('utf-8'))
+        print("Russian subtitles output: %s" % self.out_ru_srt.encode('utf-8'))
+        print("Write output subtitles: %s" % self.is_write_output_subtitles)
+        print("Write output subtitles for clips: %s" % self.is_write_output_subtitles_for_clips)
+        print("Create clips with softsub: %s" % self.is_create_clips_with_softsub)
+        print("Create clips with hardsub: %s" % self.is_create_clips_with_hardsub)
+        print("Style for hardcoded subtitles: %s" % self.hardsub_style)
+        print("Separate fragments without subtitles in Movie mode: %s" % self.is_separate_fragments_without_subtitles)
+        print("Ignore SDH subtitles: %s" % self.is_ignore_sdh_subtitle)
+        print("Output Directory: %s" % self.output_directory.encode('utf-8'))
+        print("Video width: %s" % self.video_width)
+        print("Video height: %s" % self.video_height)
+        print("Pad start: %s" % self.shift_start)
+        print("Pad end: %s" % self.shift_end)
+        print("Gap between phrases: %s" % self.time_delta)
+        print("Split Long Phrases: %s" % self.is_split_long_phrases)
+        print("Max length phrases: %s" % self.phrases_duration_limit)
+        print("Mode: %s" % self.mode)
+        print("Deck name: %s" % self.deck_name.encode('utf-8'))
+        print("--------------------------")
 
         self.is_subtitles_created = False
 
         # Загружаем английские субтитры в формате [(start_time, end_time, subtitle), (...), ...]
-        print "Loading English subtitles..."
+        print("Loading English subtitles...")
         en_subs = self.load_subtitle(self.en_srt, self.is_ignore_sdh_subtitle)
-        print "Encoding: %s" % self.sub_encoding 
-        print "English subtitles: %s" % len(en_subs)
+        print("Encoding: %s" % self.sub_encoding) 
+        print("English subtitles: %s" % len(en_subs))
 
         # Разбиваем субтитры на предложения
         self.en_subs_sentences = convert_into_sentences(en_subs, self.phrases_duration_limit)
-        print "English sentences: %s" % len(self.en_subs_sentences)
+        print("English sentences: %s" % len(self.en_subs_sentences))
 
         # Разбиваем субтитры на фразы
         self.en_subs_phrases, self.subs_with_line_timings = convert_into_phrases(self.en_subs_sentences, self.time_delta, self.phrases_duration_limit, self.is_split_long_phrases)
-        print "English phrases: %s" % len(self.en_subs_phrases)
+        print("English phrases: %s" % len(self.en_subs_phrases))
 
         # Загружаем русские субтитры в формате [(start_time, end_time, subtitle), (...), ...]
-        print "Loading Russian subtitles..."
+        print("Loading Russian subtitles...")
         ru_subs = self.load_subtitle(self.ru_srt, self.is_ignore_sdh_subtitle)
-        print "Encoding: %s" % self.sub_encoding 
-        print "Russian subtitles: %s" % len(ru_subs)
+        print("Encoding: %s" % self.sub_encoding) 
+        print("Russian subtitles: %s" % len(ru_subs))
 
         # Для preview диалога
         self.num_en_subs = len(en_subs)
@@ -676,39 +674,39 @@ class Model(object):
         self.num_phrases = len(self.en_subs_phrases)
 
         # Синхронизируем русские субтитры с получившимися английскими субтитрами
-        print "Syncing Russian subtitles with English phrases..."
+        print("Syncing Russian subtitles with English phrases...")
         self.ru_subs_phrases = sync_subtitles(self.en_subs_phrases, ru_subs)
 
         # Добавляем смещения к каждой фразе
-        print "Adding Pad Timings between English phrases..."
+        print("Adding Pad Timings between English phrases...")
         add_pad_timings_between_phrases(self.en_subs_phrases, self.shift_start, self.shift_end)
 
-        print "Adding Pad Timings between Russian phrases..."
+        print("Adding Pad Timings between Russian phrases...")
         add_pad_timings_between_phrases(self.ru_subs_phrases, self.shift_start, self.shift_end)
 
         if self.mode == "Movie":
             # Меняем длительность фраз в английских субтитрах
-            print "Changing duration English subtitles..."
+            print("Changing duration English subtitles...")
             change_subtitles_ending_time(self.en_subs_phrases, self.subs_with_line_timings, self.is_separate_fragments_without_subtitles, self.time_delta)
 
             # Меняем длительность фраз в русских субтитрах
-            print "Changing duration Russian subtitles..."
+            print("Changing duration Russian subtitles...")
             change_subtitles_ending_time(self.ru_subs_phrases, None, self.is_separate_fragments_without_subtitles, self.time_delta)
 
         self.is_subtitles_created = True
 
     def write_output_subtitles(self):
         # Записываем английские субтитры
-        print "Writing English subtitles..."
+        print("Writing English subtitles...")
         self.write_subtitles(self.out_en_srt, self.en_subs_phrases)
 
         # Записываем русские субтитры
-        print "Writing Russian subtitles..."
+        print("Writing Russian subtitles...")
         self.write_subtitles(self.out_ru_srt, self.ru_subs_phrases)
 
     def create_tsv_file(self):
         # Формируем tsv файл для импорта в Anki
-        print "Writing tsv file..."
+        print("Writing tsv file...")
         self.ffmpeg_split_timestamps.append(self.write_tsv_file(self.deck_name, self.en_subs_phrases, self.ru_subs_phrases, self.output_directory))
 
     def getTimeDelta(self):
@@ -808,7 +806,7 @@ class VideoWorker(QtCore.QThread):
                 af_to = t - af_d
                 af_params = "afade=t=in:st=%s:d=%s,afade=t=out:st=%s:d=%s" % (af_st, af_d, af_to, af_d)
 
-                print ss
+                print(ss)
                 self.updateProgressText.emit(ss)
 
                 # clip subtitles
@@ -845,7 +843,7 @@ class VideoWorker(QtCore.QThread):
                     filename_suffix = ".sub"
 
                 cmd = " ".join(["ffmpeg", "-ss", ss, "-i", '"' + self.model.video_file + '"', softsubs_options, "-strict", "-2", "-loglevel", "quiet", "-t", str(t), "-af", af_params, "-map", "0:v:0", "-map", "0:a:" + str(self.model.audio_id), softsubs_map, "-c:v", "libx264", "-vf", vf, "-c:a", "aac", "-ac", "2", '"' + filename + filename_suffix + ".mp4" + '"'])
-                print cmd.encode('utf-8')
+                print(cmd.encode('utf-8'))
                 self.model.p = Popen(cmd.encode(sys.getfilesystemencoding()), shell=True, **subprocess_args())
                 self.model.p.wait()
 
@@ -856,7 +854,7 @@ class VideoWorker(QtCore.QThread):
                     break
 
                 cmd = " ".join(["ffmpeg", "-ss", ss, "-i", '"' + self.model.video_file + '"', "-loglevel", "quiet", "-t", str(t), "-af", af_params, "-map", "0:a:" + str(self.model.audio_id), '"' + filename + ".mp3" + '"'])
-                print cmd.encode('utf-8')
+                print(cmd.encode('utf-8'))
                 self.model.p = Popen(cmd.encode(sys.getfilesystemencoding()), shell=True, **subprocess_args())
                 self.model.p.wait()
 
@@ -870,14 +868,14 @@ class VideoWorker(QtCore.QThread):
             self.jobFinished.emit(time_diff)
 
         if self.canceled:
-            print "Canceled"
+            print("Canceled")
         else:
-            print "Done"
+            print("Done")
         
         if self.model.batch_mode:
             self.batchJobsFinished.emit()
 
-class JobsInfo(QtGui.QDialog):
+class JobsInfo(QtWidgets.QDialog):
     
     def __init__(self, message, parent=None):
         super(JobsInfo, self).__init__(parent)
@@ -886,17 +884,17 @@ class JobsInfo(QtGui.QDialog):
 
     def initUI(self, message):
         
-        okButton = QtGui.QPushButton("OK")
-        cancelButton = QtGui.QPushButton("Cancel")
+        okButton = QtWidgets.QPushButton("OK")
+        cancelButton = QtWidgets.QPushButton("Cancel")
         
         okButton.clicked.connect(self.ok)
         cancelButton.clicked.connect(self.cancel)
 
-        reviewEdit = QtGui.QTextEdit()
+        reviewEdit = QtWidgets.QTextEdit()
         reviewEdit.setReadOnly(True)
         reviewEdit.setText(message)
 
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         grid.setSpacing(10)
 
         grid.addWidget(reviewEdit, 1, 1, 1, 3)
@@ -918,7 +916,7 @@ class JobsInfo(QtGui.QDialog):
     def cancel(self):
         self.done(0)
 
-class Example(QtGui.QMainWindow):
+class Example(QtWidgets.QMainWindow):
     
     def __init__(self):
         super(Example, self).__init__()
@@ -930,9 +928,9 @@ class Example(QtGui.QMainWindow):
         self.initUI()
         
     def initUI(self):
-        w = QtGui.QWidget()
+        w = QtWidgets.QWidget()
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
         # ---------------------------------------------------
         filesGroup = self.createFilesGroup()
@@ -980,44 +978,46 @@ class Example(QtGui.QMainWindow):
         self.show()
 
     def closeEvent(self, event):
+        print("close events")
         # save settings
         self.model.save_settings()
         
-        QtGui.QMainWindow.closeEvent(self, event)
+        QtWidgets.QMainWindow.closeEvent(self, event)
 
     def showVideoFileDialog(self):
-        fname = unicode(QtGui.QFileDialog.getOpenFileName(directory = self.directory, filter = "Video Files (*.avi *.mkv *.mp4 *.ts);;All files (*.*)"))
-        self.videoEdit.setText(fname)
+
+        
+        fname = QtWidgets.QFileDialog.getOpenFileName(directory = "QtWidgets.QFileDialog.getOpenFileName()", filter = "Video Files (*.avi *.mkv *.mp4 *.ts);;All files (*.*)")
+        self.videoEdit.setText(fname[0])
 
     def showSubsEngFileDialog(self):
-        fname = unicode(QtGui.QFileDialog.getOpenFileName(directory = self.directory, filter = "Subtitle Files (*.srt)"))
+        fname = str(QtWidgets.QFileDialog.getOpenFileName(directory = self.directory, filter = "Subtitle Files (*.srt)"))[0]
         self.subsEngEdit.setText(fname)
 
         self.directory = os.path.dirname(fname)
 
     def showSubsRusFileDialog(self):
-        fname = unicode(QtGui.QFileDialog.getOpenFileName(directory = self.directory, filter = "Subtitle Files (*.srt)"))
+        fname = str(QtWidgets.QFileDialog.getOpenFileName(directory = self.directory, filter = "Subtitle Files (*.srt)"))[0]
         self.subsRusEdit.setText(fname)
 
         self.directory = os.path.dirname(fname)
 
     def showOutDirectoryDialog(self):
-        fname = unicode(QtGui.QFileDialog.getExistingDirectory(directory = self.model.output_directory))
+        fname = str(QtWidgets.QFileDialog.getExistingDirectory(directory = self.model.output_directory))
 
         if len(fname) != 0:
             self.model.output_directory = fname
-
         self.outDirEdit.setText(self.model.output_directory)
 
     def showErrorDialog(self, message):
-        QtGui.QMessageBox.critical(self, "movies2anki", message)
+        QtWidgets.QMessageBox.critical(self, "movies2anki", message)
 
     def showDirAlreadyExistsDialog(self, dir):
-        reply = QtGui.QMessageBox.question(self, "movies2anki",
-            "Folder '" + dir + "' already exists. Do you want to overwrite it?", QtGui.QMessageBox.Yes | 
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, "movies2anki",
+            "Folder '" + dir + "' already exists. Do you want to overwrite it?", QtWidgets.QMessageBox.Yes | 
+            QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes:
+        if reply == QtWidgets.QMessageBox.Yes:
             return True
             
         return False
@@ -1041,20 +1041,20 @@ class Example(QtGui.QMainWindow):
             glob_results = find_glob_files(video_file)
 
             if len(glob_results) == 0:
-                print "Video file not found"
+                print("Video file not found")
                 return
             else:
                 video_file = glob_results[0]  
 
         elif not os.path.isfile(video_file):
-            print "Video file not found"
+            print("Video file not found")
             return
 
         try:
             output = check_output(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", "-select_streams", "a", video_file.encode(sys.getfilesystemencoding())], **subprocess_args(False))
         except OSError as ex:
             self.model.audio_id = 0
-            print "Can't find ffprobe", ex
+            print("Can't find ffprobe", ex)
             return
 
         json_data = json.loads(output)
@@ -1066,9 +1066,9 @@ class Example(QtGui.QMainWindow):
             title = ""
             language = "???"
 
-            if audio.has_key("tags"):
+            if "tags" in audio:
                 tags = audio["tags"]
-                if tags.has_key("language"):
+                if "language" in tags:
                     language = tags["language"]
 
             if len(title) != 0:
@@ -1092,8 +1092,10 @@ class Example(QtGui.QMainWindow):
         self.subsRusEdit.setText(self.model.ru_srt)
 
     def changeVideoFile(self):
-        self.model.video_file = unicode(self.videoEdit.text()).strip()
+        print("change video file once click and select path")
+        self.model.video_file = str(self.videoEdit.text()).strip()
         self.directory = os.path.dirname(self.model.video_file)
+        print("change video file: ", self.directory)
         self.model.input_directory = self.directory
 
         self.changeAudioStreams()
@@ -1110,13 +1112,13 @@ class Example(QtGui.QMainWindow):
         self.changeSubtitles()
 
     def changeEngSubs(self):
-        self.model.en_srt = unicode(self.subsEngEdit.text()).strip()
+        self.model.en_srt = str(self.subsEngEdit.text()).strip()
 
     def changeRusSubs(self):
-        self.model.ru_srt = unicode(self.subsRusEdit.text()).strip()
+        self.model.ru_srt = str(self.subsRusEdit.text()).strip()
 
     def changeOutDir(self):
-        self.model.output_directory = unicode(self.outDirEdit.text()).strip()
+        self.model.output_directory = str(self.outDirEdit.text()).strip()
 
     def setVideoWidth(self):
         self.model.video_width = self.widthSpinBox.value()
@@ -1146,7 +1148,7 @@ class Example(QtGui.QMainWindow):
         self.model.mode = "Phrases"
 
     def setDeckName(self):
-        self.model.deck_name = unicode(self.deckComboBox.currentText()).strip()
+        self.model.deck_name = str(self.deckComboBox.currentText()).strip()
 
     def validateSubtitles(self):
         if len(self.model.en_srt) == 0:
@@ -1157,13 +1159,13 @@ class Example(QtGui.QMainWindow):
             glob_results = find_glob_files(self.model.en_srt)
 
             if len(glob_results) == 0:
-                print "English subtitles not found."
+                print("English subtitles not found.")
                 return
             else:
                 self.model.en_srt = glob_results[0]  
 
         elif not os.path.isfile(self.model.en_srt):
-            print "English subtitles didn't exist."
+            print("English subtitles didn't exist.")
             return False
 
         if len(self.model.ru_srt) != 0:
@@ -1171,13 +1173,13 @@ class Example(QtGui.QMainWindow):
                 glob_results = find_glob_files(self.model.ru_srt)
 
                 if len(glob_results) == 0:
-                    print "Russian subtitles not found."
+                    print("Russian subtitles not found.")
                     return
                 else:
                     self.model.ru_srt = glob_results[0]  
 
             elif not os.path.isfile(self.model.ru_srt):
-                print "Russian subtitles didn't exist."
+                print("Russian subtitles didn't exist.")
                 return False
 
         return True
@@ -1197,7 +1199,7 @@ class Example(QtGui.QMainWindow):
             return
 
         if self.model.is_write_output_subtitles:
-            print "Writing output subtitles with phrases..."
+            print("Writing output subtitles with phrases...")
             self.model.write_output_subtitles()
 
         minutes = int(duration_longest_phrase / 60)
@@ -1208,7 +1210,7 @@ class Example(QtGui.QMainWindow):
 Russian subtitles: %s
 Phrases: %s
 The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num_ru_subs, self.model.num_phrases, minutes, seconds)
-        QtGui.QMessageBox.information(self, "Preview", message)
+        QtWidgets.QMessageBox.information(self, "Preview", message)
 
         self.changeEngSubs()
         self.changeRusSubs()
@@ -1239,10 +1241,10 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
                     return False
                 else:
                     try:
-                        print "Remove dir " + collection_dir.encode('utf-8')
+                        print("Remove dir " + collection_dir.encode('utf-8'))
                         shutil.rmtree(collection_dir)
                     except OSError as ex:
-                        print ex
+                        print(ex)
                         return False
         return True
         
@@ -1344,12 +1346,13 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         try:
             call(["ffmpeg", "-version"], **subprocess_args())
         except OSError as ex: 
-            print "Can't find ffmpeg", ex
+            print("Can't find ffmpeg", ex)
             self.showErrorDialog("Can't find ffmpeg.")
             return
 
         # create or remove & create colletion.media directory
         collection_dir = getNameForCollectionDirectory(self.model.output_directory, self.model.deck_name)
+        print("collection dir:", collection_dir,type(collection_dir))
         if os.path.exists(collection_dir) and self.showDirAlreadyExistsDialog(collection_dir) == False:
             return
 
@@ -1381,10 +1384,10 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         minutes = int(time_diff / 60)
         seconds = int(time_diff % 60)
         message = "Processing completed in %s minutes %s seconds." % (minutes, seconds)
-        QtGui.QMessageBox.information(self, "movies2anki", message)
+        QtWidgets.QMessageBox.information(self, "movies2anki", message)
 
     def updateDeckComboBox(self):
-        text = unicode(self.deckComboBox.currentText()).strip()
+        text = str(self.deckComboBox.currentText()).strip()
         if self.deckComboBox.findText(text) == -1:
             self.deckComboBox.addItem(text)
             self.model.recent_deck_names.append(text)
@@ -1405,13 +1408,13 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         self.showErrorDialog(message)
 
     def convert_video(self):
-        self.progressDialog = QtGui.QProgressDialog(self)
+        self.progressDialog = QtWidgets.QProgressDialog(self)
 
         self.progressDialog.setWindowTitle("Generate Video & Audio Clips")
         self.progressDialog.setCancelButtonText("Cancel")
         self.progressDialog.setMinimumDuration(0)
 
-        progress_bar = QtGui.QProgressBar(self.progressDialog)
+        progress_bar = QtWidgets.QProgressBar(self.progressDialog)
         progress_bar.setAlignment(QtCore.Qt.AlignCenter)
         self.progressDialog.setBar(progress_bar)
 
@@ -1430,34 +1433,34 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         self.worker.start()
         
     def createFilesGroup(self):
-        groupBox = QtGui.QGroupBox("Files:")
+        groupBox = QtWidgets.QGroupBox("Files:")
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
-        self.videoButton = QtGui.QPushButton("Video...")
-        self.videoEdit = QtGui.QLineEdit()
-        self.audioIdComboBox = QtGui.QComboBox()
+        self.videoButton = QtWidgets.QPushButton("Video...")
+        self.videoEdit = QtWidgets.QLineEdit()
+        self.audioIdComboBox = QtWidgets.QComboBox()
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.videoButton)
         hbox.addWidget(self.videoEdit)
         hbox.addWidget(self.audioIdComboBox)
 
         vbox.addLayout(hbox)
 
-        self.subsEngButton = QtGui.QPushButton("Eng Subs...")
-        self.subsEngEdit = QtGui.QLineEdit()
+        self.subsEngButton = QtWidgets.QPushButton("Eng Subs...")
+        self.subsEngEdit = QtWidgets.QLineEdit()
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.subsEngButton)
         hbox.addWidget(self.subsEngEdit)
 
         vbox.addLayout(hbox)
 
-        self.subsRusButton = QtGui.QPushButton("Rus Subs...")
-        self.subsRusEdit = QtGui.QLineEdit()
+        self.subsRusButton = QtWidgets.QPushButton("Rus Subs...")
+        self.subsRusEdit = QtWidgets.QLineEdit()
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.subsRusButton)
         hbox.addWidget(self.subsRusEdit)
 
@@ -1468,15 +1471,15 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         return groupBox
 
     def createOutputGroup(self):
-        groupBox = QtGui.QGroupBox("Output:")
+        groupBox = QtWidgets.QGroupBox("Output:")
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
-        self.outDirButton = QtGui.QPushButton("Directory...")
-        self.outDirEdit = QtGui.QLineEdit()
+        self.outDirButton = QtWidgets.QPushButton("Directory...")
+        self.outDirEdit = QtWidgets.QLineEdit()
         self.outDirEdit.setText(self.model.output_directory)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.outDirButton)
         hbox.addWidget(self.outDirEdit)
 
@@ -1487,105 +1490,105 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         return groupBox
 
     def createVideoDimensionsGroup(self):
-        groupBox = QtGui.QGroupBox("Video Dimensions:")
+        groupBox = QtWidgets.QGroupBox("Video Dimensions:")
 
-        layout = QtGui.QFormLayout()
+        layout = QtWidgets.QFormLayout()
 
-        self.widthSpinBox = QtGui.QSpinBox()
+        self.widthSpinBox = QtWidgets.QSpinBox()
         self.widthSpinBox.setRange(-2, 2048)
         self.widthSpinBox.setSingleStep(2)
         self.widthSpinBox.setValue(self.model.getVideoWidth())
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.widthSpinBox)
-        hbox.addWidget(QtGui.QLabel("px"))
+        hbox.addWidget(QtWidgets.QLabel("px"))
 
-        layout.addRow(QtGui.QLabel("Width:"), hbox)
+        layout.addRow(QtWidgets.QLabel("Width:"), hbox)
 
-        self.heightSpinBox = QtGui.QSpinBox()
+        self.heightSpinBox = QtWidgets.QSpinBox()
         self.heightSpinBox.setRange(-2, 2048)
         self.heightSpinBox.setSingleStep(2)
         self.heightSpinBox.setValue(self.model.getVideoHeight())
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.heightSpinBox)
-        hbox.addWidget(QtGui.QLabel("px"))
+        hbox.addWidget(QtWidgets.QLabel("px"))
 
-        layout.addRow(QtGui.QLabel("Height:"), hbox)
+        layout.addRow(QtWidgets.QLabel("Height:"), hbox)
 
         groupBox.setLayout(layout)
 
         return groupBox
 
     def createPadTimingsGroup(self):
-        groupBox = QtGui.QGroupBox("Pad Timings:")
+        groupBox = QtWidgets.QGroupBox("Pad Timings:")
 
-        layout = QtGui.QFormLayout()
+        layout = QtWidgets.QFormLayout()
 
-        self.startSpinBox = QtGui.QSpinBox()
+        self.startSpinBox = QtWidgets.QSpinBox()
         self.startSpinBox.setRange(-9999, 9999)
         self.startSpinBox.setValue(self.model.getShiftStart())
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.startSpinBox)
-        hbox.addWidget(QtGui.QLabel("ms"))
+        hbox.addWidget(QtWidgets.QLabel("ms"))
 
-        layout.addRow(QtGui.QLabel("Start:"), hbox)
+        layout.addRow(QtWidgets.QLabel("Start:"), hbox)
 
-        self.endSpinBox = QtGui.QSpinBox()
+        self.endSpinBox = QtWidgets.QSpinBox()
         self.endSpinBox.setRange(-9999, 9999)
         self.endSpinBox.setValue(self.model.getShiftEnd())
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.endSpinBox)
-        hbox.addWidget(QtGui.QLabel("ms"))
+        hbox.addWidget(QtWidgets.QLabel("ms"))
 
-        layout.addRow(QtGui.QLabel("End:"), hbox)
+        layout.addRow(QtWidgets.QLabel("End:"), hbox)
 
         groupBox.setLayout(layout)
 
         return groupBox
 
     def createGapPhrasesGroup(self):
-        groupBox = QtGui.QGroupBox("Gap between Phrases:")
+        groupBox = QtWidgets.QGroupBox("Gap between Phrases:")
 
-        self.timeSpinBox = QtGui.QDoubleSpinBox()
+        self.timeSpinBox = QtWidgets.QDoubleSpinBox()
         self.timeSpinBox.setRange(0, 600.0)
         self.timeSpinBox.setSingleStep(0.25)
         self.timeSpinBox.setValue(self.model.getTimeDelta())
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.timeSpinBox)
-        hbox.addWidget(QtGui.QLabel("sec"))
+        hbox.addWidget(QtWidgets.QLabel("sec"))
 
         groupBox.setLayout(hbox)
 
         return groupBox
 
     def createSplitPhrasesGroup(self):
-        self.splitLongPhrasesGroupBox = QtGui.QGroupBox("Split Long Phrases:")
+        self.splitLongPhrasesGroupBox = QtWidgets.QGroupBox("Split Long Phrases:")
         self.splitLongPhrasesGroupBox.setCheckable(True)
         self.splitLongPhrasesGroupBox.setChecked(self.model.is_split_long_phrases)
         self.splitLongPhrasesGroupBox.clicked.connect(self.setSplitLongPhrases)
 
-        self.splitPhrasesSpinBox = QtGui.QSpinBox()
+        self.splitPhrasesSpinBox = QtWidgets.QSpinBox()
         self.splitPhrasesSpinBox.setRange(1, 6000)
         self.splitPhrasesSpinBox.setSingleStep(10)
         self.splitPhrasesSpinBox.setValue(self.model.getPhrasesDurationLimit())
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.splitPhrasesSpinBox)
-        hbox.addWidget(QtGui.QLabel("sec"))
+        hbox.addWidget(QtWidgets.QLabel("sec"))
 
         self.splitLongPhrasesGroupBox.setLayout(hbox)
 
         return self.splitLongPhrasesGroupBox
 
     def createModeOptionsGroup(self):
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
 
-        self.movieRadioButton = QtGui.QRadioButton("Movie")
-        self.phrasesRadioButton = QtGui.QRadioButton("Phrases")
+        self.movieRadioButton = QtWidgets.QRadioButton("Movie")
+        self.phrasesRadioButton = QtWidgets.QRadioButton("Phrases")
 
         if self.model.getMode() == 'Phrases':
             self.phrasesRadioButton.setChecked(True)
@@ -1598,9 +1601,9 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         return vbox
 
     def createSubtitlePhrasesGroup(self):
-        groupBox = QtGui.QGroupBox("General Settings:")
+        groupBox = QtWidgets.QGroupBox("General Settings:")
 
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
 
         layout.addWidget(self.createGapPhrasesGroup())
         layout.addWidget(self.createSplitPhrasesGroup())
@@ -1611,9 +1614,9 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         return groupBox
 
     def createOptionsGroup(self):
-        groupBox = QtGui.QGroupBox("Options:")
+        groupBox = QtWidgets.QGroupBox("Options:")
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.createVideoDimensionsGroup())
         hbox.addWidget(self.createPadTimingsGroup())
         hbox.addWidget(self.createSubtitlePhrasesGroup())
@@ -1623,28 +1626,28 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         return groupBox
 
     def createBottomGroup(self):
-        groupBox = QtGui.QGroupBox("Name for deck:")
+        groupBox = QtWidgets.QGroupBox("Name for deck:")
 
-        self.deckComboBox = QtGui.QComboBox()
+        self.deckComboBox = QtWidgets.QComboBox()
         self.deckComboBox.setEditable(True)
         self.deckComboBox.setMaxCount(5)
-        self.deckComboBox.setSizePolicy(QtGui.QSizePolicy.Expanding,
-                QtGui.QSizePolicy.Preferred)
+        self.deckComboBox.setSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                QtWidgets.QSizePolicy.Preferred)
         self.deckComboBox.addItems(self.model.recent_deck_names)
         self.deckComboBox.clearEditText()
-        self.deckComboBox.setInsertPolicy(QtGui.QComboBox.NoInsert)
+        self.deckComboBox.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
                 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(self.deckComboBox)
 
         groupBox.setLayout(hbox)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(groupBox)
 
-        vbox = QtGui.QVBoxLayout()
-        self.previewButton = QtGui.QPushButton("Preview...")
-        self.startButton = QtGui.QPushButton("Go!")
+        vbox = QtWidgets.QVBoxLayout()
+        self.previewButton = QtWidgets.QPushButton("Preview...")
+        self.startButton = QtWidgets.QPushButton("Go!")
         vbox.addWidget(self.previewButton)
         vbox.addWidget(self.startButton)
 
@@ -1653,17 +1656,17 @@ The longest phrase: %s min. %s sec.""" % (self.model.num_en_subs, self.model.num
         return hbox
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     ex = Example()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    sys.stderr = open('log.txt', 'w')
-    sys.stdout = sys.stderr
+    #sys.stderr = open('log.txt', 'w')
+    #sys.stdout = sys.stderr
 
     os.environ["PATH"] += os.pathsep + "." + os.sep + "ffmpeg" + os.sep + "bin"
 
     main()
     
-    sys.stderr.close()
-    sys.stderr = sys.__stderr__
+    #sys.stderr.close()
+    #sys.stderr = sys.__stderr__
