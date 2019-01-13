@@ -1,6 +1,7 @@
 #  movies2anki
 
 Port to python 3, now used for Anki 2.1.  
+
 Convert movies with subtitles to watch them with [Anki](http://ankisrs.net). The movie will be splitted into separated scenes/phrases. I found it useful for improving my listening skills.
 
 Inspired by [subs2srs](http://subs2srs.sourceforge.net/).
@@ -10,7 +11,7 @@ Inspired by [subs2srs](http://subs2srs.sourceforge.net/).
 * Anki 2.0   
    https://ankiweb.net/shared/info/939347702
 * Anki 2.1  
-   https://
+   https://ankiweb.net/shared/info/1846227036
 
 ## Interface
 
